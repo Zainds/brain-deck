@@ -14,6 +14,8 @@
 
 - Node.js (версии 18 или выше)
 - npm
+- Supabase CLI
+- Docker Desktop (для локального запуска Supabase)
 
 ## Установка и запуск
 
@@ -38,12 +40,20 @@
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
+   
+4. **Локальный запуск Supabase:**
 
-4. **Настройка базы данных:**
+   Убедитесь, что Docker Desktop запущен. Запустите локальный экземпляр Supabase:
+   ```bash
+   npx supabase start
+   ```
+
+5. **Настройка базы данных:**
 
    Примените миграции из папки `supabase/migrations` к вашему проекту Supabase, чтобы создать необходимые таблицы.
+   
 
-5. **Запуск в режиме разработки:**
+6. **Запуск в режиме разработки:**
 
    ```bash
    npm run dev
