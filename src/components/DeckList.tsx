@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { Plus, Trash2, Edit2, BookOpen } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { Plus, Trash2, Edit2, BookOpen } from "lucide-react";
 
 interface Deck {
   id: string;
@@ -21,8 +21,8 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const { user } = useAuth();
 
   useEffect(() => {
@@ -34,37 +34,43 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
 
     try {
       const { data: decksData, error: decksError } = await supabase
-        .from('decks')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("decks")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (decksError) throw decksError;
 
       const decksWithCounts = await Promise.all(
         (decksData || []).map(async (deck) => {
           const { count: cardCount } = await supabase
-            .from('cards')
-            .select('*', { count: 'exact', head: true })
-            .eq('deck_id', deck.id);
+            .from("cards")
+            .select("*", { count: "exact", head: true })
+            .eq("deck_id", deck.id);
 
           const { count: dueCount } = await supabase
-            .from('card_reviews')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .lte('next_review', new Date().toISOString())
+            .from("card_reviews")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .lte("next_review", new Date().toISOString())
             .in(
-              'card_id',
-              (await supabase.from('cards').select('id').eq('deck_id', deck.id)).data?.map((c) => c.id) || []
+              "card_id",
+              (
+                await supabase.from("cards").select("id").eq("deck_id", deck.id)
+              ).data?.map((c) => c.id) || [],
             );
 
-          return { ...deck, cardCount: cardCount || 0, dueCount: dueCount || 0 };
-        })
+          return {
+            ...deck,
+            cardCount: cardCount || 0,
+            dueCount: dueCount || 0,
+          };
+        }),
       );
 
       setDecks(decksWithCounts);
     } catch (error) {
-      console.error('Ошибка загрузки колод:', error);
+      console.error("Ошибка загрузки колод:", error);
     } finally {
       setLoading(false);
     }
@@ -76,38 +82,47 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
     try {
       if (editingDeck) {
         const { error } = await supabase
-          .from('decks')
+          .from("decks")
           .update({ name: name.trim(), description: description.trim() })
-          .eq('id', editingDeck.id);
+          .eq("id", editingDeck.id);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('decks')
-          .insert({ user_id: user.id, name: name.trim(), description: description.trim() });
+          .from("decks")
+          .insert({
+            user_id: user.id,
+            name: name.trim(),
+            description: description.trim(),
+          });
 
         if (error) throw error;
       }
 
       setShowModal(false);
       setEditingDeck(null);
-      setName('');
-      setDescription('');
+      setName("");
+      setDescription("");
       loadDecks();
     } catch (error) {
-      console.error('Ошибка сохранения колоды:', error);
+      console.error("Ошибка сохранения колоды:", error);
     }
   };
 
   const handleDelete = async (deckId: string) => {
-    if (!confirm('Вы уверены, что хотите удалить эту колоду? Все карточки будут удалены.')) return;
+    if (
+      !confirm(
+        "Вы уверены, что хотите удалить эту колоду? Все карточки будут удалены.",
+      )
+    )
+      return;
 
     try {
-      const { error } = await supabase.from('decks').delete().eq('id', deckId);
+      const { error } = await supabase.from("decks").delete().eq("id", deckId);
       if (error) throw error;
       loadDecks();
     } catch (error) {
-      console.error('Ошибка удаления колоды:', error);
+      console.error("Ошибка удаления колоды:", error);
     }
   };
 
@@ -118,8 +133,8 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
       setDescription(deck.description);
     } else {
       setEditingDeck(null);
-      setName('');
-      setDescription('');
+      setName("");
+      setDescription("");
     }
     setShowModal(true);
   };
@@ -149,7 +164,9 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
         <div className="text-center py-12 bg-white rounded-xl shadow-sm">
           <BookOpen size={48} className="mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Нет колод</h3>
-          <p className="text-gray-600 mb-4">Создайте свою первую колоду для начала обучения</p>
+          <p className="text-gray-600 mb-4">
+            Создайте свою первую колоду для начала обучения
+          </p>
           <button
             onClick={() => openModal()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
@@ -160,17 +177,28 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {decks.map((deck) => (
-            <div key={deck.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{deck.name}</h3>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{deck.description || 'Без описания'}</p>
+            <div
+              key={deck.id}
+              className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition"
+            >
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {deck.name}
+              </h3>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                {deck.description || "Без описания"}
+              </p>
 
               <div className="flex gap-4 mb-4 text-sm">
                 <div className="text-gray-600">
-                  Карточек: <span className="font-semibold text-gray-900">{deck.cardCount}</span>
+                  Карточек:{" "}
+                  <span className="font-semibold text-gray-900">
+                    {deck.cardCount}
+                  </span>
                 </div>
                 {deck.dueCount! > 0 && (
                   <div className="text-blue-600">
-                    К изучению: <span className="font-semibold">{deck.dueCount}</span>
+                    К изучению:{" "}
+                    <span className="font-semibold">{deck.dueCount}</span>
                   </div>
                 )}
               </div>
@@ -201,10 +229,10 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h3 className="text-xl font-bold text-gray-900 mb-4">
-              {editingDeck ? 'Редактировать колоду' : 'Новая колода'}
+              {editingDeck ? "Редактировать колоду" : "Новая колода"}
             </h3>
 
             <div className="space-y-4">
@@ -240,8 +268,8 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
                 onClick={() => {
                   setShowModal(false);
                   setEditingDeck(null);
-                  setName('');
-                  setDescription('');
+                  setName("");
+                  setDescription("");
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
@@ -252,7 +280,7 @@ export const DeckList = ({ onSelectDeck }: DeckListProps) => {
                 disabled={!name.trim()}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {editingDeck ? 'Сохранить' : 'Создать'}
+                {editingDeck ? "Сохранить" : "Создать"}
               </button>
             </div>
           </div>
